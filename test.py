@@ -115,7 +115,7 @@ class ExperimentApp:
         tk.Label(frame, text="Press [spacebar] to start showing images.").pack(pady=20)
 
         # Danh sách các ảnh
-        self.image_paths = [f"test_image/ava{i}.jpg" for i in range(2, 8)]
+        self.image_paths = [f"assets/image{i}.png" for i in range(1, 7)]
         self.images = [ImageTk.PhotoImage(Image.open(path).resize((800, 600))) for path in self.image_paths]
 
         # Biến đếm số lần hiển thị ảnh
