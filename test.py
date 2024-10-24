@@ -131,7 +131,7 @@ class ExperimentApp:
         self.label.pack(pady=20)
 
         # Danh sách các ảnh
-        self.image_paths = [f"assets/image{i}.png" for i in range(1, 7)]
+        self.image_paths = [f"assets/image{i}.png" for i in range(1, 7)] * 5
         random.shuffle(self.image_paths)
         self.images = [ImageTk.PhotoImage(Image.open(path).resize((800, 600))) for path in self.image_paths] 
         print(self.image_paths)
