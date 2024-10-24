@@ -1,0 +1,6 @@
+assets/image3.png - Too slow
+assets/image6.png - Yes
+assets/image5.png - No
+assets/image4.png - Too slow
+assets/image1.png - Too slow
+assets/image2.png - Too slow

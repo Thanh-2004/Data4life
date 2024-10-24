@@ -17,6 +17,7 @@ class ExperimentApp:
         self.root.geometry("1200x800")
 
         self.current_frame = None
+        self.label = None
 
         # Biến để lưu thông tin hành động
         self.actions = []
@@ -38,15 +39,29 @@ class ExperimentApp:
         elif event.keysym == 'Right':
             action = "Yes"  # Người dùng chọn "Yes"
             print(f"Yes selected for image {self.current_image_index}")
-        
+
         # Lưu lại thông tin hình ảnh và hành động
         self.actions.append({
             'image': self.image_paths[self.current_image_index - 1],  # Ảnh vừa được hiển thị
             'action': action
         })
+
+        self.root.unbind('<Left>')
+        self.root.unbind('<Right>')
+
+        self.root.after_cancel(self.timeout_id)
+    
+    def too_slow(self):
+        """Xử lý khi người dùng không bấm phím kịp thời"""
+        action = "Too slow"
+        print(f"Have not pressed any key for image {self.current_image_index}")
         
-        # Chuyển sang hình ảnh tiếp theo
-        self.show_next_image()
+        self.actions.append({
+            'image': self.image_paths[self.current_image_index - 1],  # Ảnh vừa được hiển thị
+            'action': action
+        })
+
+        
 
     def create_login_screen(self):
         """Tạo màn hình đăng nhập"""
@@ -112,18 +127,19 @@ class ExperimentApp:
         self.canvas = tk.Canvas(frame, width=800, height=600)
         self.canvas.pack()
 
-        tk.Label(frame, text="Press [spacebar] to start showing images.").pack(pady=20)
+        self.label = tk.Label(frame, text="Press [spacebar] to start showing images.")
+        self.label.pack(pady=20)
 
         # Danh sách các ảnh
         self.image_paths = [f"assets/image{i}.png" for i in range(1, 7)]
-        self.images = [ImageTk.PhotoImage(Image.open(path).resize((800, 600))) for path in self.image_paths]
+        random.shuffle(self.image_paths)
+        self.images = [ImageTk.PhotoImage(Image.open(path).resize((800, 600))) for path in self.image_paths] 
+        print(self.image_paths)
 
         # Biến đếm số lần hiển thị ảnh
         self.current_image_index = 0
 
         # Gắn sự kiện cho phím mũi tên sau khi nhấn spacebar
-        self.root.bind('<Left>', self.on_arrow_press)   # Mũi tên trái (No)
-        self.root.bind('<Right>', self.on_arrow_press)  # Mũi tên phải (Yes)
 
         # Sự kiện đầu tiên: khi nhấn spacebar, bắt đầu tự động hiển thị ảnh
         self.next_function = self.start_image_sequence
@@ -133,16 +149,26 @@ class ExperimentApp:
         """Bắt đầu quá trình hiển thị hình ảnh tự động sau lần nhấn spacebar đầu tiên"""
         self.root.unbind('<space>')  # Gỡ bỏ sự kiện space sau lần nhấn đầu tiên
         self.show_next_image()  # Bắt đầu hiển thị hình ảnh
+        if self.label:  # Nếu label tồn tại
+            self.label.pack_forget()  # Ẩn label
 
     def show_next_image(self):
         """Hiển thị hình ảnh tiếp theo"""
+
+        self.root.bind('<Left>', self.on_arrow_press)   # Mũi tên trái (No)
+        self.root.bind('<Right>', self.on_arrow_press)  # Mũi tên phải (Yes)
+
+        print(self.current_image_index)
+        print(len(self.images))
+
         if self.current_image_index < len(self.images):
             # Hiển thị hình ảnh tiếp theo từ danh sách
             self.canvas.create_image(0, 0, anchor=tk.NW, image=self.images[self.current_image_index])
 
             self.current_image_index += 1
             # Chuyển đến ảnh tiếp theo sau thời gian đã định
-            self.root.after(int(time_rec) * 1000, self.show_black_screen)
+            self.root.after(int(time_rec) * (1000), self.show_black_screen)
+            self.timeout_id = self.root.after(int(time_rec) * (1000), self.too_slow)
             
             # Lưu dữ liệu khi hiển thị ảnh
             path = f"Data/{self.name_var.get()}/{self.current_image_index}.txt"
@@ -155,10 +181,12 @@ class ExperimentApp:
         """Hiển thị màn hình đen sau khi hiện hình ảnh"""
         self.canvas.create_rectangle(0, 0, 800, 600, fill="black")
         # Chờ 1.5 giây trước khi nhận hành động từ phím trái/phải
-        self.root.after(1500)
+        self.root.after(1500, self.show_next_image)
 
     def finish_experiment(self):
         """Hoàn thành thí nghiệm và ghi lại kết quả"""
+        print("Calling finish_experiment...")
+        self.canvas.delete('all')
         # Ghi lại các hành động vào tệp kết quả
         with open(f"Data/{self.name_var.get()}/results.txt", "w") as f:
             for action in self.actions:
@@ -172,29 +200,33 @@ class ExperimentApp:
         # Gỡ bỏ sự kiện mũi tên sau khi hoàn tất thí nghiệm
         self.root.unbind('<Left>')
         self.root.unbind('<Right>')
+        self.countdown(3)
+
 
     def clear_frame(self):
         """Xóa nội dung của frame hiện tại"""
         if self.current_frame:
             self.current_frame.destroy()
 
-class Sound:
-    def __init__(self, frequency, duration, fs):
-        self.frequency = frequency
-        self.duration = duration
-        self.fs = fs
+    def countdown(self, count):
+        """Hàm đếm ngược từ count đến 0"""
+        if count > 0:
+            # Xóa nội dung canvas và hiển thị số đếm ngược
+            self.canvas.delete('all')
+            self.canvas.create_text(400, 300, text=f"{count}", font=("Helvetica", 50))
 
-    def createWave(self):
-        t = np.linspace(0, self.duration, int(self.fs * self.duration), endpoint=False)
-        self.wave = 0.5 * np.sin(2 * np.pi * self.frequency * t)
+            # Gọi lại hàm countdown sau 1 giây (1000 ms)
+            self.root.after(1000, self.countdown, count - 1)
+        else:
+            # Sau khi đếm về 0, thoát khỏi chương trình
+            self.canvas.delete('all')
+            self.canvas.create_text(400, 300, text="Goodbye!", font=("Helvetica", 50))
+            self.root.after(1000, self.root.quit)
 
-    def playSound(self):
-        self.createWave()
-        sd.play(self.wave, self.fs)
-        sd.wait()
 
 if __name__ == "__main__":
-    port = "COM5"
+    # port = "COM5"
+    port = "/dev/tty.usbmodem12301"
     time_rec = 2
     root = tk.Tk()
     app = ExperimentApp(root)
