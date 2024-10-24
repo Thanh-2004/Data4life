@@ -226,7 +226,7 @@ class ExperimentApp:
 
 if __name__ == "__main__":
     # port = "COM5"
-    port = "/dev/tty.usbmodem12301"
+    port = "COM3"
     time_rec = 2
     root = tk.Tk()
     app = ExperimentApp(root)
