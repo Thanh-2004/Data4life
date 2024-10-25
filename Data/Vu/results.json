@@ -117,10 +117,6 @@
     },
     {
         "image": "assets/image4.png",
-        "action": "Too slow"
-    },
-    {
-        "image": "assets/image4.png",
         "action": "No"
     }
 ]

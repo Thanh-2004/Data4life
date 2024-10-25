@@ -21,7 +21,7 @@
     },
     {
         "image": "assets/image1.png",
-        "action": "No"
+        "action": "Yes"
     },
     {
         "image": "assets/image3.png",
@@ -45,7 +45,7 @@
     },
     {
         "image": "assets/image1.png",
-        "action": "No"
+        "action": "Yes"
     },
     {
         "image": "assets/image2.png",
